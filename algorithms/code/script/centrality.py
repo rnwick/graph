@@ -1,4 +1,4 @@
-# Scripts for O'Reilly's Graph Algorithm's
+# Centrality Module
 ## Imports
 import os.path as op
 import pandas as pd
