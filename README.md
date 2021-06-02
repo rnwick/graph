@@ -1,9 +1,10 @@
 # Directory Structure
-.
-├── code 
-│   ├── notebook      # Jupyter Notebooks working through Mark Needham's Graph Algorithms using Spark and Neo4j
-│   └── script        # Offloaded imports and functions from notebooks to scripts
-└── data              # Data that was < 50mb is here. [Note to self : Provide links to the larger files]
+
+	.
+	├── code 
+	│   ├── notebook      # Jupyter Notebooks working through Mark Needham's Graph Algorithms using Spark and Neo4j
+	│   └── script        # Offloaded imports and functions from notebooks to scripts
+	└── data              # Data that was < 50mb is here. [Note to self : Provide links to the larger files]
 
 
 # Graph Algorithms, by Mark Needham
