@@ -1,3 +1,4 @@
+# Imports and Preferences
 from py2neo import Graph
 import pandas as pd
 from numpy.random import randint
@@ -19,10 +20,8 @@ pd.set_option('display.max_columns', None)
 pd.set_option('display.width', None)
 pd.set_option('display.max_colwidth', None)
 
-# Auth
-
-# Modules
-
+# Functions
+## Down Sample Negative examples to match Positive Examples
 def down_sample(df):
     copy = df.copy()
     zero = Counter(copy.label.values)[0]
@@ -31,7 +30,8 @@ def down_sample(df):
     copy = copy.drop(copy[copy.label == 0].sample(n=n, random_state=1).index)
     return copy.sample(frac=1)
 
-# ML Pipeline and Parameters with MLlib
+
+## ML Pipeline and Parameters with MLlib
 def create_pipeline(fields):
     assembler = VectorAssembler(inputCols=fields, outputCol="features")
     rf = RandomForestClassifier(labelCol="label", featuresCol="features",
@@ -39,32 +39,31 @@ def create_pipeline(fields):
     return Pipeline(stages=[assembler, rf])
 
 
-#### Apply graphy features start
-
-#### Apply graphy features end
-
+## Train Model
 def train_model(fields, training_data):
     pipeline = create_pipeline(fields)
     model = pipeline.fit(training_data)
     return model
 
+
+## Evaluate Model
 def evaluate_model(model, test_data):
-    # Execute the model against the test set
+    ### Execute the model against the test set
     predictions = model.transform(test_data)
 
-    # Compute true positive, false positive, false negative counts
+    ### Compute true positive, false positive, false negative counts
     tp = predictions[(predictions.label == 1) & (predictions.prediction == 1)].count()
     fp = predictions[(predictions.label == 0) & (predictions.prediction == 1)].count()
     fn = predictions[(predictions.label == 1) & (predictions.prediction == 0)].count()
 
-    # Compute recall and precision manually
+    ### Compute recall and precision manually
     recall = float(tp) / (tp + fn)
     precision = float(tp) / (tp + fp)
 
-    # Compute accuracy using Spark MLLib's binary classification evaluator
+    ### Compute accuracy using Spark MLLib's binary classification evaluator
     accuracy = BinaryClassificationEvaluator().evaluate(predictions)
 
-    # Compute false positive rate and true positive rate using sklearn functions
+    ### Compute false positive rate and true positive rate using sklearn functions
     labels = [row["label"] for row in predictions.select("label").collect()]
     preds = [row["probability"][1] for row in predictions.select("probability").collect()]
     fpr, tpr, threshold = roc_curve(labels, preds)
@@ -73,11 +72,13 @@ def evaluate_model(model, test_data):
     return { "fpr": fpr, "tpr": tpr, "roc_auc": roc_auc, "accuracy": accuracy,
              "recall": recall, "precision": precision }
 
+## Display Results
 def display_results(results):
     results = {k: v for k, v in results.items() if k not in ["fpr", "tpr", "roc_auc"]}
     return pd.DataFrame({"Measure": list(results.keys()), "Score": list(results.values())})
 
 
+## Create ROC Plot
 def create_roc_plot():
     plt.style.use('classic')
     fig = plt.figure(figsize=(13, 8))
@@ -93,6 +94,8 @@ def create_roc_plot():
 def add_curve(plt, title, fpr, tpr, roc):
     plt.plot(fpr, tpr, label=f"{title} (AUC = {roc:0.2})")
     
+    
+## Plot Feature Importance
 def plot_feature_importance(fields, feature_importances):
     df = pd.DataFrame({"Feature": fields, "Importance": feature_importances})
     df = df.sort_values("Importance", ascending=False)
@@ -100,5 +103,3 @@ def plot_feature_importance(fields, feature_importances):
     ax.xaxis.set_label_text("")
     plt.tight_layout()
     plt.show()
-    
-
